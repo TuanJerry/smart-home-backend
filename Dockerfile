@@ -1,0 +1,2 @@
+FROM demisto/fastapi
+
