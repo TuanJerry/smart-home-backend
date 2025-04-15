@@ -13,6 +13,7 @@ from pydantic import (
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 # from typing_extensions import Self
+from Adafruit_IO import Client
 
 class Settings(BaseSettings):
     # Cấu hình dùng để đọc file env của chương trình
@@ -34,6 +35,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
+    # Setup các thông số account của Postgres để return Connection String kết nối database
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
@@ -45,6 +47,14 @@ class Settings(BaseSettings):
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
         )
+    
+    ADAFRUIT_IO_USERNAME: str
+    ADAFRUIT_IO_KEY: str
+    # Setup các thông số account của Adafruit IO để return Client kết nối với remote server
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ADAFRUIT_IO_CLIENT(self) -> Client:
+        return Client(self.ADAFRUIT_IO_USERNAME, self.ADAFRUIT_IO_KEY)
 
     # SMTP_TLS: bool = True
     # SMTP_SSL: bool = False
