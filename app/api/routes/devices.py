@@ -1,5 +1,6 @@
 import uuid
 from typing import Any, Optional
+from Adafruit_IO import Feed
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import col, delete, func, select
@@ -10,7 +11,7 @@ from app.api.deps import SessionDep
 
 from app.core.config import settings
 from app.model import (
-    Device, Message, DeviceCreate, DevicePublic, DeviceUpdate, DeviceToggle
+    Device, Message, DeviceCreate, DevicePublic, DeviceUpdate
 )
 router = APIRouter(prefix="/devices", tags=["devices"])
 aio = settings.ADAFRUIT_IO_CLIENT
@@ -52,17 +53,21 @@ def get_device_by_id(
     return device
 
 @router.post(
-    "/", response_model=DeviceCreate
+    "/", response_model=Device
 )
 def device_create(*, session: SessionDep, device_create: DeviceCreate) -> Any:
     """
     Create new device.
     """
-    new_feed = aio.create_feed(name = device_create.name, key = device_create.type)
+    new_feed = Feed(name = device_create.name, key = device_create.type)
+    new_feed = aio.create_feed(new_feed)
     device = Device.model_validate(device_create, update={
-        "id": new_feed.id,
+        "id": str(new_feed.id),
         "sensor": False if device_create.type in ["fan", "light", "door"] else True,
+        "value": 0,
+        "status": "off" if device_create.type in ["fan", "light", "door"] else None,
     })
+    aio.send(device.type, device.value)
     session.add(device)
     session.commit()
     session.refresh(device)
@@ -70,7 +75,7 @@ def device_create(*, session: SessionDep, device_create: DeviceCreate) -> Any:
     return device
 
 @router.put(
-    "/{id}", response_model=DeviceUpdate
+    "/{id}", response_model=Device
 )
 def device_update(
     id: str, *, session: SessionDep, device_update: DeviceUpdate
@@ -87,18 +92,20 @@ def device_update(
         if (isinstance(device_update.value, (int, float)) 
             and parse_value(device_update.value) > 0) or device_update.value == "ON":
             device_update.status = "on"
-    device = Device.model_validate(up_device, update=device_update)
-    session.add(device)
+    update_part = device_update.model_dump(exclude_unset=True)
+    up_device.sqlmodel_update(update_part)
+    # device = Device.model_validate(up_device, update=device_update)
+    session.add(up_device)
     session.commit()
-    session.refresh(device)
+    session.refresh(up_device)
     print("Device with {id} updated successfully")
-    return device
+    return up_device
 
 @router.patch(
-    "/{id}", response_model = DeviceToggle
+    "/{id}", response_model = Device
 ) 
 def device_toogle(
-    id: str, *, session: SessionDep, device_update: DeviceToggle
+    id: str, *, session: SessionDep
 ) -> Any:
     """
     Toggle a device by its ID.
@@ -110,17 +117,18 @@ def device_toogle(
     if up_device.sensor:
         raise HTTPException(status_code=410, detail="Device with {id} is a sensor")
     else: 
+        up_device.status = "on" if up_device.status == "off" else "off"
         if up_device.type not in ["door"]:
-            up_device.value = 0 if device_update.status == "off" else up_device.value
+            up_device.value = 0 if up_device.status == "off" else up_device.value
         else: 
-            up_device.value = "OFF" if device_update.status == "off" else "ON"
+            up_device.value = "OFF" if up_device.status == "off" else "ON"
     aio.send(up_device.type, up_device.value)
-    device = Device.model_validate(up_device, update=device_update)
-    session.add(device)
+    # device = Device.model_validate(up_device, update=device_update)
+    session.add(up_device)
     session.commit()
-    session.refresh(device)
+    session.refresh(up_device)
     print("Device with {id} updated successfully")
-    return device
+    return up_device
 
 @router.delete(
     "/{id}",
