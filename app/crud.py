@@ -53,6 +53,13 @@ def setting_device(*, session: Session, room: Room) -> list[Device]:
         session.refresh(db_obj)
     return list_device    
 
+def device_update_lvalue(*, session: Session, device: Device) -> Device:
+    device.value = parse_value(get_last_value(device.type)["value"])
+    session.add(device)
+    session.commit()
+    session.refresh(device)
+    return device
+
 # def create_user(*, session: Session, user_create: UserCreate) -> User:
 #     db_obj = User.model_validate(
 #         user_create, update={"hashed_password": get_password_hash(user_create.password)}
