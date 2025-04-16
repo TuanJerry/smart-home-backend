@@ -18,20 +18,20 @@ from Adafruit_IO import Client
 class Settings(BaseSettings):
     # Cấu hình dùng để đọc file env của chương trình
     model_config = SettingsConfigDict(
-        env_file="../../.env",
+        env_file=".env",
         env_ignore_empty=True,
         extra="ignore",
     )
-    # API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/v1"
     # SECRET_KEY: str = secrets.token_urlsafe(32)
     # # 60 minutes * 24 hours * 8 days = 8 days
     # ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
-    # PROJECT_NAME: str
+    PROJECT_NAME: str = ""
     # SENTRY_DSN: HttpUrl | None = None
-    POSTGRES_SERVER: str
+    POSTGRES_SERVER: str = ""
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
+    POSTGRES_USER: str = ""
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
@@ -48,8 +48,8 @@ class Settings(BaseSettings):
             path=self.POSTGRES_DB,
         )
     
-    ADAFRUIT_IO_USERNAME: str
-    ADAFRUIT_IO_KEY: str
+    ADAFRUIT_IO_USERNAME: str = ""
+    ADAFRUIT_IO_KEY: str = ""
     # Setup các thông số account của Adafruit IO để return Client kết nối với remote server
     @computed_field  # type: ignore[prop-decorator]
     @property
