@@ -73,17 +73,24 @@ def update_item(
             if envi_set.temperature is not None:
                 aio.send_data(sensor.type, envi_set.temperature)
                 sensor.value = envi_set.temperature
+            else:
+                envi_set.temperature = sensor.value
         elif sensor.type == "humidity-sensor":
             if envi_set.humidity is not None:
                 aio.send_data(sensor.type, envi_set.humidity)
                 sensor.value = envi_set.humidity
+            else:
+                envi_set.humidity = sensor.value
         elif sensor.type == "light-sensor":
             if envi_set.lightLevel is not None:
                 aio.send_data(sensor.type, envi_set.lightLevel)
-                sensor.value = envi_set.lightLevel
-        
+                sensor.value = envi_set.lightLevel 
+            else:
+                envi_set.lightLevel = sensor.value
+
     session.add_all(sensors)
     session.commit()
-    session.refresh(sensors)
+    for sensor in sensors:
+        session.refresh(sensor) 
     print("Environment data updated successfully")
     return envi_set
