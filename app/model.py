@@ -52,3 +52,8 @@ class Environment(SQLModel):
     humidity: float | None = Field(default=None)
     lightLevel: float | None = Field(default=None)
     # airQuality: str
+
+class Environment_metadata(Environment):
+    temperature: list[dict[str, str]] | None = Field(default=None)
+    humidity: list[dict[str, str]] | None = Field(default=None)
+    lightLevel: list[dict[str, str]] | None = Field(default=None)

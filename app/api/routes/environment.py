@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 from app.api.deps import SessionDep
 
-from app.ada_fetchinfo import get_last_value
+from app.ada_fetchinfo import get_last_value, get_all_value
 from app.core.config import settings
-from app.model import Device, Environment
+from app.model import Device, Environment, Environment_metadata
 
 router = APIRouter(prefix="/environment", tags=["environment"])
 aio = settings.ADAFRUIT_IO_CLIENT
@@ -32,6 +32,26 @@ def get_envi_data(
             envi.humidity = get_last_value(sensor.type)["value"]
         elif sensor.type == "light-sensor":
             envi.lightLevel = get_last_value(sensor.type)["value"]
+    return envi
+
+@router.get("/all", response_model=Environment_metadata)
+def get_all_envi_data(
+    session: SessionDep
+) -> Any:
+    sensors = session.exec(
+        select(Device).where(Device.sensor == True).order_by(func.random())
+    ).all()
+    if not sensors:
+        raise HTTPException(status_code=404, detail="No sensors found")
+    
+    envi = Environment_metadata()
+    for sensor in sensors:
+        if sensor.type == "temperature-sensor": 
+            envi.temperature = get_all_value(sensor.type)
+        elif sensor.type == "humidity-sensor":
+            envi.humidity = get_all_value(sensor.type)
+        elif sensor.type == "light-sensor":
+            envi.lightLevel = get_all_value(sensor.type)
     return envi
 
 @router.put("/", response_model=Environment)
