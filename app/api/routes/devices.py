@@ -17,7 +17,7 @@ aio = settings.ADAFRUIT_IO_CLIENT
 
 @router.get(
     "/",
-    response_model=DevicePublic,
+    response_model=list[DevicePublic],
 )
 def get_all_devices(session: SessionDep, skip: int = 0, limit: int = 100,
                     roomId: Optional[uuid.UUID] = Query(default=None)) -> Any:
