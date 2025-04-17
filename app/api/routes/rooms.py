@@ -10,7 +10,7 @@ from app.model import Room, RoomCreate, Message
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 
 
-@router.get("/", response_model=Room)
+@router.get("/", response_model=list[Room])
 def all_rooms_info(
     session: SessionDep, skip: int = 0, limit: int = 10
 ) -> Any:

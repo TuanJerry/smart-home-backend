@@ -17,35 +17,30 @@ class Room(RoomBase, table=True):
 
 
 class DeviceBase(SQLModel):
-    id: str 
     name: str
     type: str
     room_id: uuid.UUID | None = Field(default=None)
-    status: str | None = Field(default=None)
     icon: str | None = Field(default=None)
-    value : Any = Field(sa_column = Column(JSONB))
+    status: str | None = Field(default=None)
+    
 
 class DeviceCreate(DeviceBase):
-    name: str
-    type: str
-    room_id: uuid.UUID | None = Field(default=None)
-    icon: str | None = Field(default=None)
+    pass
 
 class Device(DeviceBase, table=True):
     id: str = Field(primary_key=True)
     sensor: bool
     room_id: uuid.UUID | None = Field(foreign_key="room.id")
+    value : Any = Field(sa_column = Column(JSONB))
 
 class DevicePublic(DeviceBase):
-    pass
+    id: str
 
 class DeviceUpdate(DeviceBase):
-    name: str
-    status: str
-    value: Any = Field(sa_column = Column(JSONB))
-
-class DeviceToggle(DeviceBase):
-    status: str
+    name: str | None = Field(default=None)
+    type: str | None = Field(default=None)
+    status: str | None = Field(default=None)
+    value: Any | None = Field(sa_column = Column(JSONB))
 
 # Generic message
 class Message(SQLModel):
@@ -57,3 +52,8 @@ class Environment(SQLModel):
     humidity: float | None = Field(default=None)
     lightLevel: float | None = Field(default=None)
     # airQuality: str
+
+class Environment_metadata(Environment):
+    temperature: list[dict[str, str]] | None = Field(default=None)
+    humidity: list[dict[str, str]] | None = Field(default=None)
+    lightLevel: list[dict[str, str]] | None = Field(default=None)
