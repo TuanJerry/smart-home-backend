@@ -118,10 +118,12 @@ def device_toogle(
         raise HTTPException(status_code=410, detail="Device with {id} is a sensor")
     else: 
         up_device.status = "on" if up_device.status == "off" else "off"
-        if up_device.type not in ["door"]:
-            up_device.value = 0 if up_device.status == "off" else up_device.value
-        else: 
+        if up_device.type == "door":
             up_device.value = "OFF" if up_device.status == "off" else "ON"
+        elif up_device.type == "fan":
+            up_device.value = 0 if up_device.status == "off" else 100
+        elif up_device.type == "light":
+            up_device.value = 0 if up_device.status == "off" else 1
     aio.send(up_device.type, up_device.value)
     # device = Device.model_validate(up_device, update=device_update)
     session.add(up_device)
