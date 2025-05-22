@@ -5,6 +5,7 @@ from typing import Any
 from sqlmodel import Field, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
 
+# Room settings
 class RoomBase(SQLModel):
     name: str
     icon: str | None = Field(default=None)
@@ -15,7 +16,7 @@ class RoomCreate(RoomBase):
 class Room(RoomBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
-
+#Device settings
 class DeviceBase(SQLModel):
     name: str
     type: str

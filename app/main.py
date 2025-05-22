@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.websocket.main import ws_router
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -27,3 +28,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(ws_router, prefix="/ws", tags=["websocket"])

@@ -1,6 +1,8 @@
 from typing import Any
 
 def parse_value(raw: str) -> Any:
+    if type(raw) is not str:
+        pass
     lowered = raw.lower()
     if lowered == "true":
         return True
