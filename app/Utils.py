@@ -1,4 +1,10 @@
+import asyncio
+
 from typing import Any
+from app.core.config import settings
+
+send_queue = asyncio.Queue()
+aio = settings.ADAFRUIT_IO_CLIENT
 
 def parse_value(raw: str) -> Any:
     if type(raw) is not str:

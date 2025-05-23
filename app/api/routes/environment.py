@@ -5,12 +5,10 @@ from sqlmodel import func, select
 from app.api.deps import SessionDep
 
 from app.ada_fetchinfo import get_last_value, get_all_value
-from app.core.config import settings
 from app.model import Device, Environment, Environment_metadata
+from app.utils import aio
 
 router = APIRouter(prefix="/environment", tags=["environment"])
-aio = settings.ADAFRUIT_IO_CLIENT
-
 @router.get("/", response_model=Environment)
 def get_envi_data(
     session: SessionDep

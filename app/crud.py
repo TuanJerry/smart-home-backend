@@ -1,6 +1,6 @@
 import uuid
 from typing import Any
-from app.Utils import parse_value
+from app.utils import parse_value
 
 from sqlmodel import Session, delete
 from app.core.config import settings

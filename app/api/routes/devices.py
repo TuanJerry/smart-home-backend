@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import col, delete, func, select
 
 from app import crud
-from app.Utils import parse_value
+from app.utils import parse_value, aio, send_queue
 from app.api.deps import SessionDep
 from app.core.config import settings
 from app.model import (
@@ -15,8 +15,6 @@ from app.model import (
 from app.websocket.manage import manager as ws_manage
 
 router = APIRouter(prefix="/devices", tags=["devices"])
-aio = settings.ADAFRUIT_IO_CLIENT
-
 @router.get(
     "/",
     response_model=list[DevicePublic],
@@ -88,7 +86,7 @@ async def device_update(
     if not up_device:
         raise HTTPException(status_code=404, detail=f"Device with {id} not found")
     
-    aio.send(up_device.type, device_update.value)
+    await send_queue.put((up_device.type, device_update.value))
     await ws_manage.broadcast({
         "event": "device:value",
         "device_id": up_device.id,
@@ -144,7 +142,7 @@ async def device_toogle(
             "device_id": up_device.id,
             "value": up_device.value,
         })
-    aio.send(up_device.type, up_device.value)
+    await send_queue.put((up_device.type, up_device.value))
     # device = Device.model_validate(up_device, update=device_update)
     session.add(up_device)
     session.commit()
