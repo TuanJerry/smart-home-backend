@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional, List, Any  # Thêm Any
 from sqlmodel import Session, create_engine, select
 
-from app import crud
+# from app import crud
 from app.core.config import settings
 from app.model import Room, RoomCreate, Device
 

@@ -4,6 +4,7 @@ import numpy as np
 from typing import Any, Optional, List, Tuple
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlmodel import select
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import SessionDep
 from app.core.config import settings
@@ -39,7 +40,7 @@ def get_all_cameras(session: SessionDep, skip: int = 0, limit: int = 100,
     return cameras
 
 @router.get(
-    "/{id}", response_model=CameraPublic
+    "/camera/{id}", response_model=CameraPublic
 )
 def get_camera_by_id(
     id: str, session: SessionDep
@@ -53,7 +54,7 @@ def get_camera_by_id(
     return camera
 
 @router.get(
-    "all_users",
+    "/all_users",
     response_model=List[str]
 )
 async def get_all_users():
@@ -223,9 +224,12 @@ def update_user(
         if camera_update.user_id in camera.user_ids:
             raise HTTPException(status_code=400, detail="User already registered")
         camera.user_ids.append(camera_update.user_id)
+        print(f"User {camera_update.user_id} added to camera {id}. User IDs: {camera.user_ids}")
+    flag_modified(camera, "user_ids")
     session.add(camera)
     session.commit()
     session.refresh(camera)
+    # print(f"Camera Information: {camera.id}, Name: {camera.name}, Room ID: {camera.room_id}, User IDs: {camera.user_ids}")
     return camera
 
 @router.delete(
