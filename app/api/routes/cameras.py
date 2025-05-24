@@ -40,7 +40,7 @@ def get_all_cameras(session: SessionDep, skip: int = 0, limit: int = 100,
     return cameras
 
 @router.get(
-    "/camera/{id}", response_model=CameraPublic
+    "/camera/{id}", response_model=Camera
 )
 def get_camera_by_id(
     id: str, session: SessionDep
@@ -160,6 +160,8 @@ async def camera_identification(request_data: FaceVerificationRequest, session: 
     final_message = Message(message="The user is not registered in the system. Door can't be opened.")
     if not camera:
         raise HTTPException(status_code=404, detail=f"Camera with ID {request_data.camera_verify_id} not found")
+    if not camera.status:
+        raise HTTPException(status_code=400, detail="Camera is not active")
     for user_id in camera.user_ids:
         result: Tuple[bool, int, str | dict[str, Any]] = await verify_face(
             user_id=user_id,
@@ -214,11 +216,14 @@ def update_user(
     camera = session.get(Camera, id)
     if not camera:
         raise HTTPException(status_code=404, detail= f"Camera with {id} not found")
-    
+    if not camera.status:
+        raise HTTPException(status_code=400, detail="Camera is not active")
     user = get_all_user_ids()
     if camera_update.user_id not in user:
         raise HTTPException(status_code=404, detail="User not found")
     if delete:
+        if camera_update.user_id not in camera.user_ids:
+            raise HTTPException(status_code=400, detail="User not registered")
         camera.user_ids.remove(camera_update.user_id)
     else:
         if camera_update.user_id in camera.user_ids:
@@ -231,6 +236,32 @@ def update_user(
     session.refresh(camera)
     # print(f"Camera Information: {camera.id}, Name: {camera.name}, Room ID: {camera.room_id}, User IDs: {camera.user_ids}")
     return camera
+
+@router.patch(
+    "/{id}", response_model=CameraPublic
+)
+def toggle_camera(
+    id: str, session: SessionDep
+) -> CameraPublic:
+    """
+    Toggle the status of a camera by its ID.
+    """
+    camera = session.get(Camera, id)
+    if not camera:
+        raise HTTPException(status_code=404, detail= f"Camera with {id} not found")
+    
+    camera.status = not camera.status
+    session.add(camera)
+    session.commit()
+    session.refresh(camera)
+    
+    print(f"Camera with {id} toggled successfully. New status: {'on' if camera.status else 'off'}")
+    return CameraPublic(
+        name=camera.name,
+        room_id=camera.room_id,
+        status=camera.status,
+        user_ids=camera.user_ids
+    )
 
 @router.delete(
     "/{id}", response_model=Message

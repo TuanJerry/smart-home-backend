@@ -63,6 +63,7 @@ class Environment_metadata(Environment):
 class CameraBase(SQLModel):
     name: str
     room_id: uuid.UUID | None = Field(default=None)
+    status: bool = Field(default=True)  # Trạng thái camera (on/off)
 
 class CameraCreate(CameraBase):
     pass
@@ -78,6 +79,7 @@ class CameraUpdate(SQLModel):
 class CameraPublic(CameraBase):
     name: str
     room_id: uuid.UUID | None = Field(default=None)
+    status: bool 
     user_ids: list[str] | None = Field(default_factory=list) 
 
 # Camera metadata Face Verification settings
