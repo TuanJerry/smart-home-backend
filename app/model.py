@@ -1,4 +1,5 @@
 import uuid
+import datetime
 from typing import Any, Optional
 from sqlmodel import Field, SQLModel, Column, String
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
@@ -111,3 +112,23 @@ class FaceVerificationResponse(SQLModel):
     confidence_threshold_used: (
         float  # Ngưỡng dùng để quyết định is_same_person từ confidence_score
     )
+
+# Voice settings
+class HistoryBase(SQLModel):
+    stt: int = Field(primary_key=True, default=None)
+    created_at: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.timezone.utc),
+        nullable=False
+    )
+
+class HistoryCreate(SQLModel):
+    request: str
+
+class HistoryVoice(HistoryBase, table=True):
+    request: str
+    response: str
+
+class HistoryPublic(SQLModel):
+    request: str
+    response: str
+    created_at: datetime.datetime 

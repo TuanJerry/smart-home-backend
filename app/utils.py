@@ -1,13 +1,24 @@
 import asyncio
 import base64
+import time
 import numpy as np
 
 from typing import Any, Optional, Tuple
+from sqlmodel import select, Session
+
 from app.core.config import settings
-from app.core.db import get_embeddings_for_user
+from app.core.db import get_embeddings_for_user, engine
+from app.model import Camera, Device
 from app.services.face_verification_service import face_service
 
+class Modelizer:
+    asr_pipeline = None
+    tokenizer = None
+    nlp_model = None
+
 send_queue = asyncio.Queue()
+model_ready = asyncio.Event()
+AImodel = Modelizer()
 aio = settings.ADAFRUIT_IO_CLIENT
 
 def parse_value(raw: str) -> Any:
@@ -36,7 +47,6 @@ def decode_base64_image(base64_string: str) -> Optional[bytes]:
     except Exception as e:
         print(f"Lỗi khi giải mã base64: {e}")
         return None
-
 
 def euclidean_distance_numpy(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
     if embedding1 is None or embedding2 is None:
@@ -97,3 +107,40 @@ async def verify_face(user_id: str, image_base64: str) -> Tuple[bool, int, str |
         message :str = "Not Correct Person"
 
     return True, 200, message
+
+async def timing_task(device: dict[str, str], time_delay: int) -> None:
+    time.sleep(time_delay)
+    session = Session(engine)
+    
+    if device["device"] in ["light", "fan", "door"]:
+        device_obj = session.exec(
+            select(Device).where(Device.type == device["device"])
+        ).first()
+        if not device_obj:
+            print(f"Device {device['device']} not found.")
+            return
+        device_obj.status = device["status"]
+        if device["device"] == "light":
+            device_obj.value = 1 if device["status"] == "on" else 0
+        elif device["device"] == "door":
+            device_obj.value = "ON" if device["status"] == "on" else "OFF"
+        else:
+            device_obj.value = 100 if device["status"] == "on" else 0
+        await send_queue.put((device["device"], device_obj.value))
+        session.add(device_obj)
+        print(f"Device {device['device']} set to {device['status']} with value {device_obj.value}")
+        session.commit()
+        session.refresh(device_obj)
+    else: 
+        camera_obj = session.exec(select(Camera)).first()
+        if not camera_obj:
+            print("Camera not found.")
+            return
+        camera_obj.status = True if device["status"] == "on" else False
+        session.add(camera_obj)
+        print(f"Camera set to {device['status']}")
+        session.commit()
+        session.refresh(camera_obj)
+
+    print(f"Task for {device['device']} completed after {time_delay} seconds.")
+    session.close()
