@@ -2,13 +2,12 @@ import uuid
 from typing import Any, Optional
 from Adafruit_IO import Feed
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import col, delete, func, select
+from fastapi import APIRouter, HTTPException, Query
+from sqlmodel import select
 
 from app import crud
 from app.utils import parse_value, aio, send_queue
 from app.api.deps import SessionDep
-from app.core.config import settings
 from app.model import (
     Device, Message, DeviceCreate, DevicePublic, DeviceUpdate
 )

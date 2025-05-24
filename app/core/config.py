@@ -1,18 +1,13 @@
 # import secrets
 # import warnings
 
+from pathlib import Path
 from pydantic import (
-    AnyUrl,
-    BeforeValidator,
-    EmailStr,
-    HttpUrl,
     PostgresDsn,
     computed_field,
-    model_validator,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
-# from typing_extensions import Self
 from Adafruit_IO import Client
 
 class Settings(BaseSettings):
@@ -103,4 +98,19 @@ class Settings(BaseSettings):
 
     #     return self
 
-settings = Settings()  # type: ignore
+    # Setup các thông số cho model Hình ảnh nhận diện khuôn mặt (Camera)
+    BASE_DIR : Path = Path(__file__).resolve().parent.parent.parent
+    # Thông số đánh giá độ chính xác của nhân diện khuôn mặt
+    OPTIMAL_THRESHOLD : float = 1.2 
+    CONFIDENCE_VERIFICATION_THRESHOLD : float = 0.6
+    # Thông tin về model Siamese branch
+    MODEL_NAME : str = "siamese_branch_model_best.h5"  # Tên file model của bạn
+    MODEL_PATH : Path = BASE_DIR / "models_AI" / MODEL_NAME
+    # Kích thước input mà mô hình Siamese branch mong đợi
+    MODEL_INPUT_SHAPE : tuple[int, int, int] = (100, 100, 3)  # (Cao, Rộng, Kênh)
+    # Đường dẫn đến thư mục chứa ảnh đã được mã hóa
+    EMBEDDINGS_STORE_DIR : Path = BASE_DIR / "app" / "embeddings"
+    EMBEDDINGS_STORE_FILE_NAME : Path = "embeddings_store.json"
+    EMBEDDINGS_STORE_PATH : Path = EMBEDDINGS_STORE_DIR / EMBEDDINGS_STORE_FILE_NAME
+
+settings = Settings() 
