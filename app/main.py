@@ -43,12 +43,12 @@ async def model_worker():
         print(f"📦 Đang load NLP model lên {'GPU' if device == 0 else 'CPU'}...")
         AImodel.tokenizer = await asyncio.to_thread(
             AutoTokenizer.from_pretrained,
-            "vinai/phobert-base-v2",
+            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             trust_remote_code=True
         )
         AImodel.nlp_model = await asyncio.to_thread(
             AutoModel.from_pretrained,
-            "vinai/phobert-base-v2",
+            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             trust_remote_code=True,
             use_safetensors=True
         )
