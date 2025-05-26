@@ -228,7 +228,7 @@ def update_user(
         camera.user_ids.remove(camera_update.user_id)
     else:
         if camera_update.user_id in camera.user_ids:
-            raise HTTPException(status_code=400, detail="User already registered")
+            raise HTTPException(status_code=200, detail="User already registered")
         camera.user_ids.append(camera_update.user_id)
         print(f"User {camera_update.user_id} added to camera {id}. User IDs: {camera.user_ids}")
     flag_modified(camera, "user_ids")

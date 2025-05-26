@@ -34,6 +34,7 @@ class Device(DeviceBase, table=True):
 
 class DevicePublic(DeviceBase):
     id: str
+    value: Any | None = Field(default=None)
 
 class DeviceUpdate(DeviceBase):
     name: str | None = Field(default=None)
