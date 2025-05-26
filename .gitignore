@@ -3,7 +3,8 @@
 alembic.ini
 .venv
 
-__pycache__/
+venv/
 models_AI/siamese_branch_model_best.h5
 
 voices
+**/__pycache__/

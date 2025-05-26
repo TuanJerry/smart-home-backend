@@ -186,21 +186,22 @@ async def camera_identification(request_data: FaceVerificationRequest, session: 
             )
             break
     if type(final_message) is FaceVerificationResponse:
-        door_device = session.exec(
-            select(Device).where(Device.type == "door" and Device.room_id == camera.room_id)
-        ).first()
-        if not door_device:
-            raise HTTPException(status_code=404, detail=f"Door of {camera.room_id} not found")
-        if door_device.status == "off":
-            door_device.status = "on"
-            door_device.value = "ON"
-            await send_queue.put((door_device.type, door_device.value))
-            session.add(door_device)
-            session.commit()
-            session.refresh(door_device)
-            print(f"Door with {door_device.id} opened successfully")
-        else:
-            print(f"Door with {door_device.id} is already open")
+        # door_device = session.exec(
+        #     select(Device).where(Device.type == "door" and Device.room_id == camera.room_id)
+        # ).first()
+        # if not door_device:
+        #     raise HTTPException(status_code=404, detail=f"Door of {camera.room_id} not found")
+        # if door_device.status == "off":
+        #     door_device.status = "on"
+        #     door_device.value = "ON"
+        #     await send_queue.put((door_device.type, door_device.value))
+        #     session.add(door_device)
+        #     session.commit()
+        #     session.refresh(door_device)
+        #     print(f"Door with {door_device.id} opened successfully")
+        # else:
+        #     print(f"Door with {door_device.id} is already open")
+        pass
     return final_message
 
 @router.put(
